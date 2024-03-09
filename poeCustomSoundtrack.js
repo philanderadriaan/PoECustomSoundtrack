@@ -124,8 +124,9 @@ function getTrack(areaName) {
   return track;
 }
 
-
-function parseLogLine(line) {
+// Changed to async to prevent double playing in login screen
+async function parseLogLine(line) {
+  
 
   //assume POE is running if a new log line come sin
   isPoERunning = true;
@@ -140,7 +141,7 @@ function parseLogLine(line) {
   const exitWindow = line.match(/] Async connecting to /)
     || line.match(/] Abnormal disconnect: An unexpected disconnection occurred./);
   
-    if (loginWindow || exitWindow) {
+  if (loginWindow || exitWindow) {
     newArea = ['login', 'login'];
   }
   
@@ -153,6 +154,12 @@ function parseLogLine(line) {
         currentTrackName = track.name;
         currentTrackId = track.id;
         mainWindow.webContents.send('changeTrack', track);
+      }
+
+      // Prevent double playing in login screen as currentTrackName may be late to update
+      while (areaCode === 'login' && currentTrackName !== track.name) {
+        // Wait until currentTrackName is updated
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
   }
