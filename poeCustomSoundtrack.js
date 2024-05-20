@@ -22,6 +22,9 @@ let isPoERunning = false;
 
 let soundtrack = defaults.soundtrack;
 
+// File containing boss dialogs.
+const bosses = require('./bosses.js');
+
 function reset(){
   currentTrackName = false;
   currentTrackId = false;
@@ -145,6 +148,13 @@ async function parseLogLine(line) {
   if (loginWindow || exitWindow) {
     newArea = ['login', 'login'];
   }
+
+  // Gets the boss name if the logs contains boss dialog.
+  const boss = getBoss(line);
+  if (boss) {
+    // Boss music will be handled by the soundtrack json similar to new areas.
+    newArea = [boss, boss];
+  }
   
   if (newArea) {
     const areaCode = newArea[1];
@@ -163,6 +173,17 @@ async function parseLogLine(line) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
+  }
+}
+
+// Checks whether a line in the logs contains boss dialog.
+function getBoss(line) {
+  try {
+    // If contains boss dialog, returns the boss name.
+    return bosses.dialog[line.substring(line.lastIndexOf('] ') + 2)];
+  } catch (err) {
+    // Otherwise returns null.
+    return null;
   }
 }
 
